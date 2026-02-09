@@ -1,0 +1,9 @@
+data/
+results/
+checkpoints/
+.venv/
+utils/__pycache__/
+*.pyc
+.env
+.vscode/
+sorted/
