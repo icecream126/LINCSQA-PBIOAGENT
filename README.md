@@ -3,6 +3,11 @@
 ![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54)
 ![PyTorch](https://img.shields.io/badge/PyTorch-%23EE4C2C.svg?style=for-the-badge&logo=PyTorch&logoColor=white)
 
+* [Paper](https://arxiv.org/abs/2602.07408)
+* [Project page](https://icecream126.github.io/LINCSQA_PBIOAGENT_project_page/)
+* [Dataset and checkpoint](https://zenodo.org/records/18767361)
+
+
 ## LINCSQA Benchmark
 
 <p align="center">
@@ -62,23 +67,6 @@ python run.py --task_type task2 --no_gat --allow_uncertain \
 
 ---
 
-## Data Structure
-
-### Input
-```
-# Task1
-data/lincsqa/gene_regulation_dir_pred/combined_score/{model_name}/{organ}/task1/...
-
-# Task2
-data/lincsqa/case_study/sorted/combined_score/{model_name}/{case_study}/task2/...
-```
-
-### Output
-```
-results/{project_name}/{model_name}/{organ}/{task_type}/{test_case_id}/{gt_moa}/{compound}/{candidate_moa}_{seed}.json
-```
-
----
 
 ## Command Line Arguments
 
@@ -154,11 +142,113 @@ LINCSQA_PBIOAGENT/
 │   ├── pipeline_data_loader.py # Data loading
 │   └── result_saver.py         # Result saving
 ├── metrics/
-│   └── gene_regulation_prediction.py                # Task1 AUROC metrics calculator
+│   └── gene_regulation_prediction.py   # Task1 AUROC metrics calculator
 ├── bash/
 │   ├── run_task1.sh            # Task1 script
 │   └── run_task2.sh            # Task2 script
 ├── checkpoints/                # GAT checkpoints
-├── data/                       # Benchmark data
+├── data/
+│   ├── kg/                     # Knowledge graph data (see Data Setup)
+│   ├── lincsqa/                # Full LINCSQA benchmark data
+│   ├── lincsqa_small/          # Small subset for demo/testing
+│   ├── metadata/               # Cell, compound, STRINGdb metadata
+│   └── templates/              # Chat templates for LLMs
+├── results/                    # Pipeline output
 └── assets/                     # Figures
+```
+
+---
+
+## Data & Checkpoint Setup
+
+### 0. Download checkpoint and data
+Download checkpoint and data at [here](https://zenodo.org/records/18767361 
+).
+
+### 1. Knowledge Graph (`data/kg/`)
+
+The `data/kg/` directory requires data from **two sources** that must be merged together:
+
+1. **PerturbQA Dataset (Zenodo)**: Download the `kg/` folder from the PerturbQA dataset at [https://zenodo.org/records/14915313](https://zenodo.org/records/14915313).
+2. **This Repository**: The `data/kg/` folder already contains additional knowledge graph files provided by this project.
+
+To set up, download the `kg/` folder from the Zenodo dataset and merge its contents into `data/kg/`, combining them with the files already present in this repository. Both sources are required for the pipeline to function correctly.
+
+After merging, the directory should have the following structure:
+
+```
+data/kg/
+├── bioplex.json
+├── corum.json
+├── corum_gsea.json
+├── corum_human_5.1.txt
+├── ensembl.json
+├── go.json
+├── go_dict.json
+├── go_gsea.json
+├── reactome.json
+├── reactome_gsea.json
+├── string.json
+├── uniprot.json
+├── depmap/                         # DepMap dependency data
+│   ├── CRISPRGeneDependency.csv
+│   ├── CRISPRGeneEffect.csv
+│   ├── CRISPRInferredCommonEssentials.csv
+│   ├── Model.csv
+│   └── PortalCompounds.csv
+└── signor/                         # SIGNOR signaling network
+    ├── edges.csv
+    └── nodes.csv
+```
+
+### 2. STRINGdb (`data/metadata/STRINGdb/`)
+
+The STRINGdb protein interaction files can be downloaded from the [STRING database (Homo sapiens)](https://string-db.org/cgi/download?species_text=Homo+sapiens):
+
+- **`9606.protein.info.v12.0.txt`** - Protein information (names, annotations)
+- **`9606.protein.links.v12.0.txt`** - Protein-protein interaction links with combined scores
+
+Download these two files and place them in `data/metadata/STRINGdb/`.
+
+### 3. Full Data Directory Structure
+
+```
+data/
+├── kg/                                 # Knowledge graph (see section 1 above)
+│   ├── bioplex.json
+│   ├── corum.json
+│   ├── corum_gsea.json
+│   ├── corum_human_5.1.txt
+│   ├── ensembl.json
+│   ├── go.json
+│   ├── go_dict.json
+│   ├── go_gsea.json
+│   ├── reactome.json
+│   ├── reactome_gsea.json
+│   ├── string.json
+│   ├── uniprot.json
+│   ├── depmap/
+│   │   ├── CRISPRGeneDependency.csv
+│   │   ├── CRISPRGeneEffect.csv
+│   │   ├── CRISPRInferredCommonEssentials.csv
+│   │   ├── Model.csv
+│   │   └── PortalCompounds.csv
+│   └── signor/
+│       ├── edges.csv
+│       └── nodes.csv
+├── lincsqa/                            # Full LINCSQA 
+│   ├── gene_regulation_dir_pred/       # Task1 data
+│   │   └── combined_score/{model_name}/{organ}/task1/...
+│   └── case_study/                     # Task2 data
+│       ├── sorted/combined_score/{model_name}/{case_study}/task2/...
+│       └── unsorted/
+└── metadata/
+    ├── cell/
+    │   └── cellosaurus.json            # Cell line metadata
+    ├── compound_moa/
+    │   ├── domain_knowledge_mapping.json
+    │   └── moa_target_mapping.json
+    └── STRINGdb/                       # STRING protein 
+        ├── 9606.protein.info.v12.0.txt
+        └── 9606.protein.links.v12.0.txt
 ```
